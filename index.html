@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy 33rd Birthday Love!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Dancing+Script:wght@700&display=swap');
+
+        :root {
+            --lego-red: #d11d1d; --lego-blue: #0055ad; --lego-yellow: #f5cf16; --gold: #ffd700;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #050508; color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Bg stays fixed while content scrolls */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .container { 
+            position: relative; z-index: 10; width: 100%; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box;
+            overflow-y: auto; /* Allow the container to scroll */
+        }
+
+        h1 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: var(--gold); margin: 20px 0; text-align: center; }
+        .sub-text { font-size: 1rem; color: #ff9999; margin-bottom: 30px; text-align: center; }
+
+        /* CENTERED 3D LEGO CAKE */
+        #screen-cake {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 80vh; 
+        }
+
+        .cake-wrapper { position: relative; margin: 100px auto 40px; display: flex; flex-direction: column; align-items: center; }
+        
+        .candle-row { position: absolute; top: -60px; display: flex; gap: 12px; z-index: 20; }
+        .candle { width: 12px; height: 50px; background: #fff; border-radius: 3px; position: relative; cursor: pointer; }
+        .flame { 
+            width: 16px; height: 24px; background: radial-gradient(#fff, #ffcc00, #ff4400); 
+            border-radius: 50% 50% 20% 20%; position: absolute; top: -28px; left: -2px;
+            animation: flicker 0.1s infinite; box-shadow: 0 0 20px orange;
+        }
+
+        .lego-brick {
+            position: relative; border-radius: 4px; margin-top: -2px;
+            box-shadow: inset -6px -6px 0 rgba(0,0,0,0.4), inset 6px 6px 0 rgba(255,255,255,0.2);
+        }
+        .stud { width: 14px; height: 8px; background: inherit; border-radius: 3px 3px 0 0; position: absolute; top: -8px; }
+
+        /* BALLOONS */
+        .balloon {
+            width: 70px; height: 90px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            position: fixed; bottom: -150px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 1.5rem; color: white;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.4); z-index: 100;
+        }
+
+        /* SCRATCH CARDS - Optimized for Scrolling */
+        .scratch-grid { 
+            display: flex; flex-direction: column; gap: 30px; width: 100%; 
+            align-items: center; padding-bottom: 100px;
+        }
+        .card-box {
+            position: relative; width: 280px; height: 140px; background: white; color: #333; 
+            border-radius: 15px; display: flex; justify-content: center; align-items: center;
+            padding: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); font-weight: bold;
+        }
+        /* Touch action auto allows scrolling until we start scratching */
+        canvas.scratch-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 15px; touch-action: auto; }
+
+        /* OVERLAYS */
+        #event-overlay, #final-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: none; z-index: 3000;
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .event-text { font-size: 2.8rem; font-family: 'Dancing Script', cursive; color: var(--gold); padding: 20px; }
+
+        @keyframes flicker { 50% { transform: scale(1.1); } }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="event-overlay">
+    <div class="event-text" id="event-msg"></div>
+    <p style="color: #ff9999; font-size: 1rem;">Tap to reveal the next wish... ❤️</p>
+</div>
+
+<div id="final-screen">
+    <h1 style="font-size: 3rem;">Happy Birthday, My Everything!</h1>
+    <p style="font-size: 1.2rem; color: #ff9999;">6th is my favorite day because of you.</p>
+    <p style="max-width: 80%; line-height: 1.5; margin-top: 15px;">I love you to the moon and back! 🥂🎆</p>
+</div>
+
+<div class="container">
+    <div id="screen-balloons">
+        <h1>Happy 33rd Birthday!</h1>
+        <p class="sub-text">6 balloons for the best man born on the 6th! ❤️</p>
+        <div id="balloon-zone"></div>
+    </div>
+
+    <div id="screen-cake" class="hidden">
+        <h1>A Wish for My King</h1>
+        <div class="cake-wrapper">
+            <div class="candle-row">
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+            </div>
+            <div class="lego-brick" style="width: 110px; height: 45px; background: var(--lego-red); z-index: 3;">
+                <div style="left:15px" class="stud"></div><div style="left:45px" class="stud"></div><div style="left:75px" class="stud"></div>
+            </div>
+            <div class="lego-brick" style="width: 170px; height: 50px; background: var(--lego-yellow); z-index: 2;">
+                <div style="left:30px" class="stud"></div><div style="left:75px" class="stud"></div><div style="left:120px" class="stud"></div>
+            </div>
+            <div class="lego-brick" style="width: 230px; height: 55px; background: var(--lego-blue); z-index: 1;">
+                <div style="left:40px" class="stud"></div><div style="left:105px" class="stud"></div><div style="left:170px" class="stud"></div>
+            </div>
+        </div>
+        <p style="color: var(--gold); font-weight: bold; margin-top: 40px;">Blow out the candles!</p>
+    </div>
+
+    <div id="screen-scratch" class="hidden">
+        <h1>6 Reasons I Adore You</h1>
+        <div class="scratch-grid" id="grid"></div>
+    </div>
+</div>
+
+<script>
+    const cardData = [
+        { text: "In your arms, I’ve found my forever home. ❤️", reaction: "My Forever Home!" },
+        { text: "33 years ago the world got brighter because of you.", reaction: "My Brightest Star!" },
+        { text: "You are the best thing that ever happened to me.", reaction: "I'm So Lucky!" },
+        { text: "To the man who works so hard for us—you're my hero.", reaction: "My Hero!" },
+        { text: "Thank you for being my rock and my best friend.", reaction: "Soulmates!" },
+        { text: "Every day with you is a gift. Happy Birthday! 🥂", reaction: "I Love You!" }
+    ];
+
+    let popped = 0; let scratchedCount = 0; let isFinal = false;
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+
+    class Particle {
+        constructor(x, y, color, symbol = null) {
+            this.x = x; this.y = y; this.color = color; this.symbol = symbol;
+            this.vx = (Math.random()-0.5)*12; this.vy = (Math.random()-0.5)*12;
+            this.alpha = 1;
+        }
+        draw() {
+            ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
+            if(this.symbol) { ctx.font = "24px Arial"; ctx.fillText(this.symbol, this.x, this.y); }
+            else { ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, 7); ctx.fill(); }
+        }
+        update() { this.x += this.vx; this.y += this.vy; if(isFinal) this.vy += 0.05; this.alpha -= 0.01; }
+    }
+
+    function animate() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        particles = particles.filter(p => p.alpha > 0);
+        if(isFinal && Math.random() < 0.1) particles.push(new Particle(Math.random()*canvas.width, -20, 'var(--gold)', "❤️"));
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    function triggerEvent(data) {
+        const overlay = document.getElementById('event-overlay');
+        document.getElementById('event-msg').innerText = data.reaction;
+        overlay.style.display = 'flex';
+        for(let i=0; i<40; i++) particles.push(new Particle(window.innerWidth/2, window.innerHeight/2, 'var(--gold)', "❤️"));
+        overlay.onclick = () => {
+            overlay.style.display = 'none';
+            if(scratchedCount === 6) { isFinal = true; setTimeout(() => document.getElementById('final-screen').style.display = 'flex', 500); }
+        };
+    }
+
+    function spawnBalloon() {
+        if(popped < 6) {
+            const b = document.createElement('div');
+            b.className = 'balloon'; b.innerText = popped + 1;
+            b.style.left = (15 + Math.random()*70) + '%';
+            b.style.backgroundColor = `hsl(${popped*60}, 80%, 60%)`;
+            document.body.appendChild(b);
+            let y = -150;
+            const move = setInterval(() => {
+                y += 3; b.style.bottom = y + 'px';
+                if(y > window.innerHeight + 150) { clearInterval(move); b.remove(); spawnBalloon(); }
+            }, 20);
+            b.onclick = (e) => {
+                clearInterval(move); b.remove();
+                for(let i=0; i<30; i++) particles.push(new Particle(e.clientX, e.clientY, b.style.backgroundColor));
+                popped++;
+                if(popped === 6) { document.getElementById('screen-balloons').classList.add('hidden'); document.getElementById('screen-cake').classList.remove('hidden'); }
+                else spawnBalloon();
+            };
+        }
+    }
+
+    function blow(el) {
+        el.querySelector('.flame').remove();
+        if(document.querySelectorAll('.flame').length === 0) {
+            setTimeout(() => { document.getElementById('screen-cake').classList.add('hidden'); document.getElementById('screen-scratch').classList.remove('hidden'); initScratch(); }, 1000);
+        }
+    }
+
+    function initScratch() {
+        const grid = document.getElementById('grid');
+        cardData.forEach((item) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'card-box';
+            wrap.innerHTML = `<span>${item.text}</span>`;
+            const can = document.createElement('canvas');
+            can.className = 'scratch-layer';
+            wrap.appendChild(can);
+            grid.appendChild(wrap);
+
+            const rect = wrap.getBoundingClientRect();
+            can.width = rect.width; can.height = rect.height;
+            const sCtx = can.getContext('2d');
+            sCtx.fillStyle = '#C0C0C0'; sCtx.fillRect(0,0, can.width, can.height);
+
+            let triggered = false;
+            const scratch = (e) => {
+                // When we start scratching, we prevent scrolling
+                can.style.touchAction = 'none'; 
+                const r = can.getBoundingClientRect();
+                const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left;
+                const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top;
+                sCtx.globalCompositeOperation = 'destination-out';
+                sCtx.beginPath(); sCtx.arc(x, y, 35, 0, 7); sCtx.fill();
+                if(!triggered) { triggered = true; scratchedCount++; setTimeout(() => triggerEvent(item), 1000); }
+            };
+
+            // Reset touch-action on release to allow scrolling again
+            const resetTouch = () => { can.style.touchAction = 'auto'; };
+            
+            can.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
+            can.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
+            can.addEventListener('touchend', resetTouch);
+            can.addEventListener('mouseup', resetTouch);
+        });
+    }
+
+    window.onload = spawnBalloon;
+</script>
+</body>
+</html>
