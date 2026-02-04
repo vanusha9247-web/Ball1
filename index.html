@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 33rd Birthday!</title>
+    <style>
+        :root {
+            --lego-red: #d11d1d; --lego-blue: #0055ad; --lego-yellow: #f5cf16; --gold: #ffd700;
+        }
+
+        body {
+            margin: 0; padding: 0; background: #050508; color: white;
+            font-family: 'Poppins', sans-serif; overflow-x: hidden;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+
+        .container { 
+            position: relative; z-index: 10; width: 100%; max-width: 600px;
+            padding: 20px; display: flex; flex-direction: column; align-items: center; 
+            box-sizing: border-box;
+        }
+
+        h1 { font-size: 1.8rem; text-shadow: 0 0 15px var(--gold); text-align: center; }
+        .sub-text { color: #ff9999; margin-bottom: 20px; text-align: center; font-size: 1rem; }
+
+        /* Lego Cake */
+        .lego-stack { margin: 30px auto; display: inline-block; }
+        .brick {
+            border-radius: 6px; margin: 2px auto;
+            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.2), inset 4px 4px 0 rgba(255,255,255,0.3);
+        }
+        .studs { display: flex; justify-content: space-around; width: 100%; transform: translateY(-8px); }
+        .stud { width: 12px; height: 10px; border-radius: 3px; background: inherit; }
+
+        /* Balloons */
+        .balloon {
+            width: 70px; height: 90px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            position: absolute; bottom: -150px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 1.8rem; color: white;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.3);
+            z-index: 50;
+        }
+
+        /* Responsive Scratch Cards */
+        .scratch-grid { 
+            display: flex; flex-direction: column; gap: 25px; width: 100%; 
+            align-items: center; justify-content: center;
+        }
+        .card-box {
+            position: relative; width: 90%; max-width: 320px; height: 150px;
+            background: white; color: #333; border-radius: 15px;
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; padding: 15px; box-sizing: border-box;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); font-weight: bold;
+        }
+        canvas.scratch-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 15px; touch-action: none; }
+
+        /* Big Pop-up Message */
+        #big-popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 2000; animation: fadeIn 0.5s;
+        }
+        .popup-content { font-size: 2.5rem; color: var(--gold); text-align: center; font-weight: bold; padding: 20px; }
+
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        .hidden { display: none !important; }
+        .candle { width: 12px; height: 35px; background: #eee; display: inline-block; margin: 10px; position: relative; }
+        .flame { width: 14px; height: 20px; background: orange; border-radius: 50%; position: absolute; top: -20px; animation: flicker 0.1s infinite; }
+        @keyframes flicker { 50% { transform: scale(1.2); } }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="big-popup">
+    <div class="popup-content" id="popup-text">Wow! ❤️</div>
+    <p>Click to continue</p>
+</div>
+
+<div class="container">
+    <div id="screen-balloons">
+        <h1>Happy 33rd Birthday!</h1>
+        <p class="sub-text">I chose 6 balloons because your birthday is on the 6th—my favorite day! ❤️</p>
+        <div id="balloon-zone"></div>
+    </div>
+
+    <div id="screen-cake" class="hidden">
+        <h1>You're my Piece of Perfection!</h1>
+        <div class="lego-stack">
+            <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+            <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+            <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+            <div class="brick" style="width: 100px; height: 35px; background: var(--lego-red);"><div class="studs"><div class="stud"></div><div class="stud"></div></div></div>
+            <div class="brick" style="width: 160px; height: 35px; background: var(--lego-yellow);"><div class="studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div></div>
+            <div class="brick" style="width: 220px; height: 35px; background: var(--lego-blue);"><div class="studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div><div class="stud"></div></div></div>
+        </div>
+        <p>Make a wish & blow out the candles!</p>
+    </div>
+
+    <div id="screen-scratch" class="hidden">
+        <h1>6 Reasons You're My Everything</h1>
+        <div class="scratch-grid" id="grid"></div>
+        <div id="final-msg" class="hidden" style="margin-top: 30px; border-top: 2px solid var(--gold); padding-top: 20px;">
+            <h2 style="color: var(--gold);">The King of my Heart!</h2>
+            <p>I hope your 33rd year is as incredible as you are. Let's celebrate! 🥂</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { text: "In your arms, I’ve found my forever home. ❤️", reaction: "Forever & Always!" },
+        { text: "33 years ago the world got brighter because of you.", reaction: "My Brightest Star!" },
+        { text: "You are the best thing that ever happened to me.", reaction: "So Lucky!" },
+        { text: "To the man who works so hard for us—you're my hero.", reaction: "My Champion!" },
+        { text: "Thank you for being my rock and my best friend.", reaction: "Best Friends Forever!" },
+        { text: "Every day with you is a gift. Happy Birthday! 🥂", reaction: "I Love You!" }
+    ];
+
+    let popped = 0; let scratched = 0;
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+
+    function createExplosion(x, y, color) {
+        for(let i=0; i<30; i++) {
+            particles.push({ x, y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, a: 1, c: color });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.a -= 0.02;
+            ctx.globalAlpha = p.a; ctx.fillStyle = p.c;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill();
+            if(p.a <= 0) particles.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    function triggerReaction(txt) {
+        const pop = document.getElementById('big-popup');
+        const pText = document.getElementById('popup-text');
+        pText.innerText = txt;
+        pop.style.display = 'flex';
+        createExplosion(window.innerWidth/2, window.innerHeight/2, 'gold');
+        pop.onclick = () => pop.style.display = 'none';
+    }
+
+    function spawn() {
+        if(popped < 6) {
+            const b = document.createElement('div');
+            b.className = 'balloon'; b.innerText = popped + 1;
+            b.style.left = (10 + Math.random()*70) + '%';
+            b.style.backgroundColor = `hsl(${popped*60}, 80%, 60%)`;
+            document.getElementById('balloon-zone').appendChild(b);
+            let y = -150;
+            const move = setInterval(() => {
+                y += 3; b.style.bottom = y + 'px';
+                if(y > window.innerHeight) { clearInterval(move); b.remove(); spawn(); }
+            }, 20);
+            b.onclick = (e) => {
+                clearInterval(move); b.remove();
+                createExplosion(e.clientX, e.clientY, b.style.backgroundColor);
+                popped++;
+                if(popped === 6) {
+                    document.getElementById('screen-balloons').classList.add('hidden');
+                    document.getElementById('screen-cake').classList.remove('hidden');
+                } else spawn();
+            };
+        }
+    }
+
+    function blow(el) {
+        el.querySelector('.flame').remove();
+        createExplosion(el.offsetLeft + 20, el.offsetTop + 100, 'gold');
+        if(document.querySelectorAll('.flame').length === 0) {
+            setTimeout(() => {
+                document.getElementById('screen-cake').classList.add('hidden');
+                document.getElementById('screen-scratch').classList.remove('hidden');
+                initScratch();
+            }, 800);
+        }
+    }
+
+    function initScratch() {
+        const grid = document.getElementById('grid');
+        data.forEach((item, i) => {
+            const box = document.createElement('div');
+            box.className = 'card-box';
+            box.innerHTML = `<span>${item.text}</span>`;
+            const can = document.createElement('canvas');
+            can.className = 'scratch-layer';
+            box.appendChild(can);
+            grid.appendChild(box);
+
+            const rect = box.getBoundingClientRect();
+            can.width = rect.width; can.height = rect.height;
+            const sCtx = can.getContext('2d');
+            sCtx.fillStyle = '#C0C0C0'; sCtx.fillRect(0,0, can.width, can.height);
+
+            let triggered = false;
+            const scratch = (e) => {
+                const r = can.getBoundingClientRect();
+                const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left;
+                const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top;
+                sCtx.globalCompositeOperation = 'destination-out';
+                sCtx.beginPath(); sCtx.arc(x, y, 25, 0, 7); sCtx.fill();
+
+                if(!triggered) {
+                    triggered = true; scratched++;
+                    setTimeout(() => triggerReaction(item.reaction), 500);
+                    if(scratched === 6) document.getElementById('final-msg').classList.remove('hidden');
+                }
+            };
+            can.addEventListener('mousemove', (e) => { if(e.buttons === 1) scratch(e); });
+            can.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); });
+        });
+    }
+
+    window.onload = spawn;
+</script>
+</body>
+</html>
