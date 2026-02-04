@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 33rd Birthday!</title>
+    <style>
+        :root {
+            --lego-red: #d11d1d;
+            --lego-blue: #0055ad;
+            --lego-yellow: #f5cf16;
+            --lego-green: #287f3e;
+            --gold: #ffd700;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: #0a0a0c;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            text-align: center;
+        }
+
+        #bg-canvas { position: fixed; top:0; left:0; z-index: -1; }
+
+        .container { position: relative; z-index: 10; padding: 20px; min-height: 100vh; }
+
+        /* 3D LEGO BRICK DESIGN */
+        .lego-stack {
+            display: flex; flex-direction: column; align-items: center;
+            margin: 50px auto; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .brick {
+            position: relative; border-radius: 4px;
+            margin-bottom: 2px;
+            box-shadow: inset -4px -4px 0 rgba(0,0,0,0.2), inset 4px 4px 0 rgba(255,255,255,0.3);
+        }
+
+        .studs {
+            display: flex; justify-content: space-around;
+            position: absolute; top: -8px; width: 100%;
+        }
+
+        .stud {
+            width: 18px; height: 10px; border-radius: 3px 3px 0 0;
+            background: inherit; box-shadow: inset 0 2px 2px rgba(255,255,255,0.4);
+        }
+
+        /* Candles */
+        .candle-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 5px; }
+        .candle {
+            width: 12px; height: 40px; background: #fff;
+            border-radius: 2px; position: relative; cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .flame {
+            width: 14px; height: 20px; background: radial-gradient(#fff, #ffcc00, #ff4400);
+            border-radius: 50% 50% 20% 20%; position: absolute; top: -22px; left: -1px;
+            animation: flicker 0.1s infinite; filter: drop-shadow(0 0 10px orange);
+        }
+
+        /* Balloons */
+        .balloon {
+            width: 85px; height: 110px; border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
+            position: absolute; bottom: -150px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 2rem; color: white;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Scratch Cards */
+        .scratch-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px; max-width: 900px; margin: 20px auto;
+        }
+        .card-box {
+            position: relative; width: 280px; height: 140px; border-radius: 15px;
+            overflow: hidden; background: white; color: #222;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 600; padding: 20px; box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin: auto;
+        }
+        canvas.scratch-layer { position: absolute; top:0; left:0; width:100%; height:100%; cursor: crosshair; }
+
+        @keyframes flicker { 0%, 100% { transform: scale(1) rotate(-1deg); } 50% { transform: scale(1.1) rotate(1deg); } }
+
+        .hidden { display: none; }
+        h1 { font-size: 2.5rem; text-shadow: 0 0 10px var(--gold); }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="container">
+    <div id="screen-balloons">
+        <h1>Happy 33rd Birthday!</h1>
+        <p>Why 6 balloons? Because you're my favorite #6! ❤️</p>
+        <div id="balloon-zone"></div>
+    </div>
+
+    <div id="screen-cake" class="hidden">
+        <h1>Make a 33rd Birthday Wish!</h1>
+        <div class="lego-stack">
+            <div class="candle-row">
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+                <div class="candle" onclick="blow(this)"><div class="flame"></div></div>
+            </div>
+            <div class="brick" style="width: 100px; height: 40px; background: var(--lego-red); z-index: 3;">
+                <div class="studs"><div class="stud"></div><div class="stud"></div></div>
+            </div>
+            <div class="brick" style="width: 160px; height: 45px; background: var(--lego-yellow); z-index: 2;">
+                <div class="studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+            </div>
+            <div class="brick" style="width: 220px; height: 50px; background: var(--lego-blue); z-index: 1;">
+                <div class="studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+            </div>
+        </div>
+        <p>Blow out the candles to see your messages...</p>
+    </div>
+
+    <div id="screen-scratch" class="hidden">
+        <h1>6 Reasons I Adore You</h1>
+        <div class="scratch-grid" id="grid"></div>
+        <p style="margin-top: 40px; font-size: 1.5rem;">Happy Birthday, Handsome! 🥂</p>
+    </div>
+</div>
+
+<script>
+    const heartMessages = [
+        "In your arms, I’ve found my forever home. ❤️",
+        "33 years ago the world got brighter because of you.",
+        "You are the best thing that ever happened to me.",
+        "To the man who works so hard for us—you're my hero.",
+        "Thank you for being my rock and my best friend.",
+        "Every day with you is a gift. Forever to go! 🥂"
+    ];
+
+    let popped = 0;
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function initCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = initCanvas;
+    initCanvas();
+
+    // Balloon Spawning
+    function spawn() {
+        if(popped < 6) {
+            const b = document.createElement('div');
+            b.className = 'balloon';
+            b.innerText = popped + 1;
+            b.style.left = (10 + Math.random()*80) + '%';
+            b.style.backgroundColor = `hsl(${Math.random()*360}, 70%, 50%)`;
+            document.getElementById('balloon-zone').appendChild(b);
+            
+            let y = -150;
+            const move = setInterval(() => {
+                y += 2.5; b.style.bottom = y + 'px';
+                if(y > window.innerHeight) { clearInterval(move); b.remove(); spawn(); }
+            }, 20);
+
+            b.onclick = () => {
+                clearInterval(move); b.remove(); popped++;
+                if(popped === 6) {
+                    document.getElementById('screen-balloons').classList.add('hidden');
+                    document.getElementById('screen-cake').classList.remove('hidden');
+                } else { spawn(); }
+            }
+        }
+    }
+
+    function blow(el) {
+        const f = el.querySelector('.flame');
+        if(f) f.remove();
+        if(document.querySelectorAll('.flame').length === 0) {
+            setTimeout(() => {
+                document.getElementById('screen-cake').classList.add('hidden');
+                document.getElementById('screen-scratch').classList.remove('hidden');
+                initScratch();
+            }, 1000);
+        }
+    }
+
+    function initScratch() {
+        const grid = document.getElementById('grid');
+        heartMessages.forEach(msg => {
+            const container = document.createElement('div');
+            container.className = 'card-box';
+            container.innerHTML = `<span>${msg}</span>`;
+            
+            const can = document.createElement('canvas');
+            can.className = 'scratch-layer';
+            container.appendChild(can);
+            grid.appendChild(container);
+
+            const rect = container.getBoundingClientRect();
+            can.width = rect.width; can.height = rect.height;
+            const sCtx = can.getContext('2d');
+            sCtx.fillStyle = '#b7b7b7';
+            sCtx.fillRect(0,0, can.width, can.height);
+
+            const scratch = (e) => {
+                const r = can.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - r.left;
+                const y = (e.clientY || e.touches[0].clientY) - r.top;
+                sCtx.globalCompositeOperation = 'destination-out';
+                sCtx.beginPath(); sCtx.arc(x, y, 25, 0, Math.PI*2); sCtx.fill();
+            };
+            can.addEventListener('mousemove', (e) => { if(e.buttons===1) scratch(e); });
+            can.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
+        });
+    }
+
+    window.onload = spawn;
+</script>
+
+</body>
+</html>
